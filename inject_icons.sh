@@ -32,4 +32,11 @@ for DPI in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   fi
 done
 
+# Patch Android package ID (mirrors inject_icons.bat behaviour)
+MANIFEST="android/app/src/main/AndroidManifest.xml"
+if [ -f "$MANIFEST" ]; then
+  sed -i 's/com\.example\.fuelle/com.privacychase.fuelle/g' "$MANIFEST"
+  echo "[OK] Android package ID patched to com.privacychase.fuelle"
+fi
+
 echo "[+] Icons done."

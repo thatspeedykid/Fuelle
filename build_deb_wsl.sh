@@ -2,7 +2,7 @@
 # Builds a .deb package for Linux (run from WSL or Linux)
 set -e
 cd "$(dirname "$0")"
-VERSION="0.5.0-alpha"
+VERSION="0.5.0~alpha"   # tilde = pre-release of 0.5.0 in dpkg version ordering
 DEB_DIR="deb_build/fuelle_${VERSION}"
 
 rm -rf "$DEB_DIR"
@@ -10,17 +10,18 @@ mkdir -p "$DEB_DIR/DEBIAN" \
          "$DEB_DIR/usr/bin" \
          "$DEB_DIR/usr/lib/fuelle" \
          "$DEB_DIR/usr/share/applications" \
-         "$DEB_DIR/usr/share/doc/fuelle" \
-         "$DEB_DIR/usr/share/icons/hicolor/256x256/apps"
+         "$DEB_DIR/usr/share/doc/fuelle"
+
+# Create all standard hicolor icon size dirs
+for sz in 16 32 48 64 128 256 512; do
+  mkdir -p "$DEB_DIR/usr/share/icons/hicolor/${sz}x${sz}/apps"
+done
 
 # Build Flutter Linux release first
 flutter build linux --release
 
 # Copy bundle
 cp -r build/linux/x64/release/bundle/. "$DEB_DIR/usr/lib/fuelle/"
-
-# Rename binary if needed
-[ -f "$DEB_DIR/usr/lib/fuelle/flo" ] && mv "$DEB_DIR/usr/lib/fuelle/flo" "$DEB_DIR/usr/lib/fuelle/fuelle"
 
 # Launcher script
 cat > "$DEB_DIR/usr/bin/fuelle" << 'LAUNCH'
@@ -56,6 +57,7 @@ Version: $VERSION
 Section: utils
 Priority: optional
 Architecture: amd64
+Depends: libgtk-3-0, libblkid1, liblzma5
 Maintainer: PrivacyChase <hello@privacychase.com>
 Description: fuelle - privacy-first meal planner & nutrition tracker
  No accounts. No tracking. No ads.

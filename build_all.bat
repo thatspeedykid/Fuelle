@@ -22,12 +22,25 @@ echo [2/5] Setting up platforms and injecting icons...
 call inject_icons.bat
 echo.
 
-:: [3/5] Windows build
-echo [3/5] Building Windows release...
+:: [3/5] Pre-warm Flutter Windows toolchain
+:: Generates windows/flutter/ephemeral/ before MSBuild tries to use it.
+:: Without this, MSBuild's flutter_assemble custom step runs config-only
+:: before the ephemeral directory exists, causing MSB8066 exit code 1.
+echo [3/5] Pre-warming Flutter Windows toolchain...
+call flutter build windows --config-only
+if errorlevel 1 (
+  echo [WARN] Toolchain pre-warm reported an issue - attempting full build anyway
+)
+echo.
+
+:: [4/5] Windows build
+echo [4/5] Building Windows release...
 call flutter build windows --release
 if errorlevel 1 (
   echo ==========================================
   echo   BUILD FAILED - see errors above
+  echo   Tip: try running  flutter clean  then
+  echo   re-run this script.
   echo ==========================================
   pause & exit /b 1
 )
@@ -57,8 +70,8 @@ if not errorlevel 1 (
 )
 echo.
 
-:: [4/5] Android build
-echo [4/5] Building Android APK...
+:: [5/5] Android build
+echo [5/5] Building Android APK...
 call flutter build apk --release
 if errorlevel 1 (
   echo [WARN] Android build failed - continuing
@@ -70,8 +83,7 @@ if errorlevel 1 (
 )
 echo.
 
-:: [5/5] Summary
-echo [5/5] Build summary
+:: Summary
 echo ==========================================
 echo   Fuelle v%VERSION% - Build Complete
 echo ==========================================

@@ -30,6 +30,7 @@ if [ -d "$MACOS_APP" ]; then
       --volname "Fuelle $VERSION" \
       --window-pos 200 120 \
       --window-size 600 400 \
+      --icon "fuelle.app" 150 185 \
       --icon-size 100 \
       --app-drop-link 450 185 \
       "installers/fuelle_${VERSION}.dmg" \

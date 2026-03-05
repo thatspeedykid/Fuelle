@@ -42,7 +42,6 @@ class _TodayScreenState extends State<TodayScreen> {
   String get _dayLabel {
     if (_dayOffset == 0)  return 'Today';
     if (_dayOffset == -1) return 'Yesterday';
-    if (_dayOffset == 1)  return 'Tomorrow';
     final d = DateTime.now().add(Duration(days: _dayOffset));
     return _weekday(d.weekday);
   }
@@ -78,7 +77,7 @@ class _TodayScreenState extends State<TodayScreen> {
         '?query=${Uri.encodeComponent(q)}'
         '&dataType=Foundation,SR%20Legacy'
         '&pageSize=10'
-        '&api_key=DEMO_KEY',
+        '&api_key=DEMO_KEY', // NOTE: DEMO_KEY is rate-limited (30 req/hr IP, 50/day). Register at https://fdc.nal.usda.gov/api-key-signup.html for a free key.
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode == 200) {
@@ -192,8 +191,11 @@ class _TodayScreenState extends State<TodayScreen> {
                   fontSize: 10, color: _muted, letterSpacing: 1)),
               ])),
               IconButton(
-                icon: Icon(Icons.chevron_right, color: _muted),
-                onPressed: () => setState(() { _dayOffset++; _openPanel = null; })),
+                icon: Icon(Icons.chevron_right,
+                  color: _dayOffset < 0 ? _muted : _border),
+                onPressed: _dayOffset < 0
+                  ? () => setState(() { _dayOffset++; _openPanel = null; })
+                  : null),
             ]),
           ),
 
@@ -305,7 +307,7 @@ class _TodayScreenState extends State<TodayScreen> {
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
         color: _surface,
-        border: Border.all(color: isOpen ? _accent.withOpacity(0.5) : _border),
+        border: Border.all(color: isOpen ? _accent.withValues(alpha: 0.5) : _border),
         borderRadius: BorderRadius.circular(14)),
       child: Column(children: [
         // Header row
@@ -458,8 +460,8 @@ class _TodayScreenState extends State<TodayScreen> {
                     margin: const EdgeInsets.only(bottom: 4),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSel ? _accent.withOpacity(0.12) : _surface,
-                      border: Border.all(color: isSel ? _accent.withOpacity(0.4) : _border),
+                      color: isSel ? _accent.withValues(alpha: 0.12) : _surface,
+                      border: Border.all(color: isSel ? _accent.withValues(alpha: 0.4) : _border),
                       borderRadius: BorderRadius.circular(7)),
                     child: Row(children: [
                       Expanded(child: Text(

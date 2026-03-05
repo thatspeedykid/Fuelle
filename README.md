@@ -18,7 +18,7 @@ Fuelle is a cross-platform meal planning and nutrition tracking app built with t
 - 🔍 **USDA FoodData Central search** — accurate, government-verified nutrition data
 - ⚖️ **Portion control** — specify grams before adding any food
 - 📊 **Daily summary** — calories, carbs, protein, fat vs your goals
-- 📅 **Day navigation** — browse past and future days
+- 📅 **Day navigation** — browse past days
 - 📆 **Week view** — see the whole week at a glance
 - 📋 **History** — rolling log with per-day totals and 7-day averages
 - 🎯 **Nutrition goals** — set your own daily calorie & macro targets

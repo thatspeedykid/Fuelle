@@ -75,9 +75,9 @@ class _WeekScreenState extends State<WeekScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 2),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSel ? _accent : isToday ? _accent.withOpacity(0.08) : _surface2,
+                color: isSel ? _accent : isToday ? _accent.withValues(alpha: 0.08) : _surface2,
                 border: Border.all(
-                  color: isSel ? _accent : isToday ? _accent.withOpacity(0.4) : Colors.transparent),
+                  color: isSel ? _accent : isToday ? _accent.withValues(alpha: 0.4) : Colors.transparent),
                 borderRadius: BorderRadius.circular(10)),
               child: Column(children: [
                 Text(dayNames[e.key],
@@ -140,14 +140,13 @@ class _WeekScreenState extends State<WeekScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Text(label, style: GoogleFonts.dmMono(
-            fontSize: 11, color: _muted, letterSpacing: 1,
-            textStyle: const TextStyle(textBaseline: TextBaseline.alphabetic))),
+            fontSize: 11, color: _muted, letterSpacing: 1)),
           const Spacer(),
           if (isToday) Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: _accent.withOpacity(0.12),
-              border: Border.all(color: _accent.withOpacity(0.3)),
+              color: _accent.withValues(alpha: 0.12),
+              border: Border.all(color: _accent.withValues(alpha: 0.3)),
               borderRadius: BorderRadius.circular(20)),
             child: Text('TODAY', style: GoogleFonts.dmMono(
               fontSize: 9, color: _accent, letterSpacing: 1.5))),

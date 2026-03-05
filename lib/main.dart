@@ -174,9 +174,9 @@ class _FuelleShellState extends State<_FuelleShell> {
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: sel ? _accent.withOpacity(0.12) : Colors.transparent,
+                      color: sel ? _accent.withValues(alpha: 0.12) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: sel ? _accent.withOpacity(0.4) : Colors.transparent)),
+                      border: Border.all(color: sel ? _accent.withValues(alpha: 0.4) : Colors.transparent)),
                     child: Row(children: [
                       Icon(_tabIcons[i], size: 16, color: sel ? _accent : _muted),
                       const SizedBox(width: 10),
@@ -200,7 +200,7 @@ class _FuelleShellState extends State<_FuelleShell> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: _cur.darkMode ? const Color(0xFF1a2a0a) : const Color(0xFFe8f5c8),
-                          border: Border.all(color: _accent.withOpacity(0.35)),
+                          border: Border.all(color: _accent.withValues(alpha: 0.35)),
                           borderRadius: BorderRadius.circular(8)),
                         child: Row(children: [
                           const Text('☕', style: TextStyle(fontSize: 13)),
@@ -328,7 +328,7 @@ class _FuelleShellState extends State<_FuelleShell> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     color: _cur.darkMode ? const Color(0xFF1a2a0a) : const Color(0xFFe8f5c8),
-                    border: Border.all(color: _accent.withOpacity(0.35)),
+                    border: Border.all(color: _accent.withValues(alpha: 0.35)),
                     borderRadius: BorderRadius.circular(20)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Text('☕', style: TextStyle(fontSize: 12)),
@@ -388,7 +388,7 @@ class _FuelleShellState extends State<_FuelleShell> {
                     child: Container(
                       width: 40, height: 36,
                       decoration: BoxDecoration(
-                        color: _cur.fontSize == entry.$2 ? _accent.withOpacity(0.15) : Colors.transparent,
+                        color: _cur.fontSize == entry.$2 ? _accent.withValues(alpha: 0.15) : Colors.transparent,
                         border: Border.all(color: _cur.fontSize == entry.$2 ? _accent : _border),
                         borderRadius: BorderRadius.circular(6)),
                       alignment: Alignment.center,

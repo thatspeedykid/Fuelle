@@ -21,9 +21,11 @@ echo
 echo "[3/4] Building Linux release..."
 flutter build linux --release
 mkdir -p installers
-LINUX_BIN="build/linux/x64/release/bundle/fuelle"
-if [ -f "$LINUX_BIN" ]; then
-  echo "[OK] Linux binary: $LINUX_BIN"
+LINUX_BUNDLE="build/linux/x64/release/bundle"
+if [ -f "$LINUX_BUNDLE/fuelle" ]; then
+  TARBALL="installers/fuelle_${VERSION}_linux_x64.tar.gz"
+  tar -czf "$TARBALL" -C "$LINUX_BUNDLE" .
+  echo "[OK] Linux bundle: $TARBALL"
 else
   echo "[WARN] Linux binary not found at expected path"
 fi

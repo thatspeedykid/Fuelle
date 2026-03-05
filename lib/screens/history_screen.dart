@@ -76,8 +76,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _accent.withOpacity(0.06),
-        border: Border.all(color: _accent.withOpacity(0.2)),
+        color: _accent.withValues(alpha: 0.06),
+        border: Border.all(color: _accent.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(14)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('${recent.length}-DAY AVERAGE',
@@ -97,8 +97,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _avgChip(String label, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
-      border: Border.all(color: color.withOpacity(0.3)),
+      color: color.withValues(alpha: 0.1),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
       borderRadius: BorderRadius.circular(20)),
     child: Text(label, style: GoogleFonts.dmMono(fontSize: 11, color: color)),
   );
