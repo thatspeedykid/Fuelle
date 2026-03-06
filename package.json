@@ -1,0 +1,98 @@
+{
+  "name": "fuelle",
+  "version": "0.5.0",
+  "description": "Fuelle — privacy-first nutrition tracker. No accounts. No tracking. No ads.",
+  "author": "PrivacyChase",
+  "license": "GPL-3.0",
+  "private": true,
+  "main": "electron/src/main.js",
+  "scripts": {
+    "start":       "electron .",
+    "dev":         "cross-env NODE_ENV=development electron .",
+    "postinstall": "electron-builder install-app-deps",
+    "build:win":   "electron-builder --win --x64",
+    "build:mac":   "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all":   "electron-builder --win --mac --linux"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "cross-env":       "^7.0.3",
+    "electron":        "^29.1.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId":       "com.privacychase.fuelle",
+    "productName": "fuelle",
+    "copyright":   "Copyright 2024 PrivacyChase",
+
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "resources"
+    },
+
+    "files": [
+      "www/**/*",
+      "electron/src/**/*",
+      "!node_modules/**/*"
+    ],
+
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "resources/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "fuelle"
+    },
+
+    "mac": {
+      "target": [
+        { "target": "dmg",  "arch": ["x64", "arm64"] },
+        { "target": "zip",  "arch": ["x64", "arm64"] }
+      ],
+      "icon": "resources/icon.icns",
+      "category": "public.app-category.healthcare-fitness",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/entitlements.mac.plist",
+      "entitlementsInherit": "electron/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "fuelle ${version}"
+    },
+
+    "linux": {
+      "target": [
+        { "target": "deb",      "arch": ["x64", "arm64"] },
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "rpm",      "arch": ["x64"] }
+      ],
+      "icon": "resources/icon.png",
+      "category": "Utility",
+      "description": "Privacy-first nutrition tracker — no accounts, no tracking"
+    },
+    "deb": {
+      "priority": "optional",
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libsecret-1-0"
+      ]
+    }
+  }
+}
