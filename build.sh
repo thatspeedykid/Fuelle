@@ -1,73 +1,62 @@
 #!/usr/bin/env bash
-# fuelle — auto-build script for macOS and Linux
-# Usage: bash build.sh [win|mac|linux|all]
-#        (defaults to current OS)
+# fuelle build script — macOS and Linux
+# Usage: bash build.sh [mac|linux|all]
 
-set -e
 PLATFORM="${1:-detect}"
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'; BOLD='\033[1m'
+RED='\033[0;31m'; GREEN='\033[0;32m'; BOLD='\033[1m'; NC='\033[0m'
+
+# Keep terminal open if double-clicked from file manager (Linux)
+LAUNCHED_FROM_FILEMANAGER=false
+if [ -z "$TERM" ] || [ "$TERM" = "dumb" ]; then
+    LAUNCHED_FROM_FILEMANAGER=true
+fi
+
+pause_if_needed() {
+    if [ "$LAUNCHED_FROM_FILEMANAGER" = true ]; then
+        echo ""
+        read -p "Press Enter to close..." dummy
+    fi
+}
 
 echo ""
-echo -e "${BOLD} fuelle v0.5.0 — Build Script${NC}"
-echo " =============================="
+echo -e "${BOLD} fuelle — Build Script${NC}"
+echo " ========================"
 echo ""
 
-# ── Step 1: Detect OS ─────────────────────────────────────────────────────────
+# ── Detect platform ───────────────────────────────────────────────────────────
 detect_os() {
-  case "$(uname -s)" in
-    Darwin) echo "mac" ;;
-    Linux)  echo "linux" ;;
-    *)      echo "unknown" ;;
-  esac
+    case "$(uname -s)" in
+        Darwin) echo "mac" ;;
+        Linux)  echo "linux" ;;
+        *)      echo "unknown" ;;
+    esac
 }
 [ "$PLATFORM" = "detect" ] && PLATFORM=$(detect_os)
 echo -e " Platform: ${GREEN}$PLATFORM${NC}"
 echo ""
 
-# ── Step 2: Ensure Node.js is installed ───────────────────────────────────────
-echo "[1/4] Checking for Node.js..."
-
-install_node_mac() {
-  echo "      Node.js not found. Installing via Homebrew..."
-  if ! command -v brew &>/dev/null; then
-    echo "      Homebrew not found — installing Homebrew first..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add brew to PATH for Apple Silicon
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
-    eval "$(/usr/local/bin/brew shellenv 2>/dev/null || true)"
-  fi
-  brew install node
-}
-
-install_node_linux() {
-  echo "      Node.js not found. Installing via NodeSource..."
-  if command -v apt-get &>/dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-  elif command -v dnf &>/dev/null; then
-    curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-    sudo dnf install -y nodejs
-  elif command -v yum &>/dev/null; then
-    curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-    sudo yum install -y nodejs
-  elif command -v pacman &>/dev/null; then
-    sudo pacman -Sy --noconfirm nodejs npm
-  else
-    echo -e "${RED}      [ERROR] Cannot auto-install Node.js on this distro.${NC}"
-    echo "      Please install Node.js 20+ manually: https://nodejs.org"
-    exit 1
-  fi
-}
+# ── Check Node.js — just tell them to install it, no auto-install ─────────────
+echo "[1/3] Checking for Node.js..."
 
 if ! command -v node &>/dev/null; then
-  case "$PLATFORM" in
-    mac)   install_node_mac ;;
-    linux) install_node_linux ;;
-    *)
-      echo -e "${RED}[ERROR] Node.js not found. Install from https://nodejs.org${NC}"
-      exit 1
-      ;;
-  esac
+    echo ""
+    echo -e " ${RED}[ERROR] Node.js is not installed.${NC}"
+    echo ""
+    if [ "$PLATFORM" = "mac" ]; then
+        echo " Install it from: https://nodejs.org/en/download"
+        echo " Choose the macOS installer (.pkg) — do NOT use Homebrew."
+        echo " After installing, open a new Terminal and run this script again."
+    else
+        echo " Install it by running these two commands:"
+        echo ""
+        echo "   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+        echo "   sudo apt-get install -y nodejs"
+        echo ""
+        echo " Then run this script again."
+    fi
+    echo ""
+    pause_if_needed
+    exit 1
 fi
 
 NODE_VER=$(node --version)
@@ -75,64 +64,70 @@ NPM_VER=$(npm --version)
 echo -e " [OK] Node.js ${GREEN}$NODE_VER${NC} | npm ${GREEN}v$NPM_VER${NC}"
 echo ""
 
-# ── Step 3: Install npm dependencies ─────────────────────────────────────────
-echo "[2/4] Installing dependencies (electron + electron-builder)..."
-echo "      First run downloads ~200MB. Subsequent runs are fast."
+# ── Install dependencies ──────────────────────────────────────────────────────
+echo "[2/3] Installing dependencies..."
+echo "      (First run downloads ~200MB — this may take a few minutes)"
 echo ""
+
 npm install
+if [ $? -ne 0 ]; then
+    echo -e "${RED}[ERROR] npm install failed. Check your internet connection.${NC}"
+    pause_if_needed
+    exit 1
+fi
 echo ""
 echo -e " [OK] Dependencies ready."
 echo ""
 
-# ── Step 4: Build ─────────────────────────────────────────────────────────────
-echo "[3/4] Building..."
+# ── Build ─────────────────────────────────────────────────────────────────────
+echo "[3/3] Building..."
 echo ""
 
 case "$PLATFORM" in
-  win)
-    echo "      Building Windows .exe..."
-    npm run build:win
-    OUTPUT="dist-electron/fuelle Setup 0.5.0.exe"
-    ;;
-  mac)
-    echo "      Building macOS .dmg..."
-    npm run build:mac
-    OUTPUT="dist-electron/fuelle-0.5.0.dmg"
-    ;;
-  linux)
-    # Install Linux build deps if needed
-    if command -v apt-get &>/dev/null; then
-      sudo apt-get install -y --no-install-recommends \
-        libgtk-3-dev libnotify-dev libnss3 libxss1 libxtst6 \
-        xdg-utils libatspi2.0-0 rpm 2>/dev/null || true
-    fi
-    echo "      Building Linux .deb + AppImage..."
-    npm run build:linux
-    OUTPUT="dist-electron/"
-    ;;
-  all)
-    echo "      Building all desktop platforms..."
-    npm run build:all
-    OUTPUT="dist-electron/"
-    ;;
-  *)
-    echo -e "${RED}Usage: bash build.sh [win|mac|linux|all]${NC}"
-    exit 1
-    ;;
+    mac)
+        npm run build:mac
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}[ERROR] Build failed.${NC}"
+            pause_if_needed; exit 1
+        fi
+        echo ""
+        echo " Done! App is at: dist-electron/fuelle-0.6.0.dmg"
+        open dist-electron 2>/dev/null || true
+        ;;
+    linux)
+        # Install Linux build deps if on apt-based system
+        if command -v apt-get &>/dev/null; then
+            echo " Installing Linux build dependencies..."
+            sudo apt-get install -y --no-install-recommends \
+                libgtk-3-dev libnotify-dev libnss3 libxss1 \
+                libxtst6 xdg-utils libatspi2.0-0 rpm fakeroot 2>/dev/null || true
+            echo ""
+        fi
+        npm run build:linux
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}[ERROR] Build failed.${NC}"
+            pause_if_needed; exit 1
+        fi
+        echo ""
+        echo " Done! Packages are in: dist-electron/"
+        echo "   .deb  — install with: sudo dpkg -i dist-electron/*.deb"
+        echo "   .AppImage — run with: chmod +x dist-electron/*.AppImage && ./dist-electron/*.AppImage"
+        xdg-open dist-electron 2>/dev/null || true
+        ;;
+    all)
+        npm run build:all
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}[ERROR] Build failed.${NC}"
+            pause_if_needed; exit 1
+        fi
+        echo ""
+        echo " Done! Output in: dist-electron/"
+        ;;
+    *)
+        echo -e "${RED}Usage: bash build.sh [mac|linux|all]${NC}"
+        pause_if_needed; exit 1
+        ;;
 esac
 
-# ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
-echo "[4/4] Build complete!"
-echo ""
-echo -e " ${GREEN}┌──────────────────────────────────────────────────────────┐${NC}"
-echo -e " ${GREEN}│${NC}  Output: ${BOLD}$OUTPUT${NC}"
-echo -e " ${GREEN}│${NC}  Install it on your device — no browser, no Flutter.    "
-echo -e " ${GREEN}└──────────────────────────────────────────────────────────┘${NC}"
-echo ""
-
-# Open output folder
-case "$PLATFORM" in
-  mac)   open dist-electron 2>/dev/null || true ;;
-  linux) xdg-open dist-electron 2>/dev/null || true ;;
-esac
+pause_if_needed

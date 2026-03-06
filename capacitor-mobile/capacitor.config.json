@@ -1,0 +1,35 @@
+{
+  "appId": "com.privacychase.fuelle",
+  "appName": "fuelle",
+  "webDir": "../www",
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor",
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Preferences": {
+      "group": "com.privacychase.fuelle"
+    },
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#f5f5f0",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#f5f5f0"
+    }
+  },
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": false
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

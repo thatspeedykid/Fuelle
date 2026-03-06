@@ -6,17 +6,23 @@
 
 ---
 
-## ⚠️ Requirement: install Node.js before building
+## ⚠️ Requirement: install Node.js before building anything
 
-**All builds require Node.js.** Install it first, everything else is automatic.
+👉 **https://nodejs.org/en/download**
 
-👉 **https://nodejs.org/en/download** — choose the LTS Windows Installer (.msi)
+- **Windows** — download the `.msi` LTS installer, run it, done
+- **macOS** — download the `.pkg` LTS installer, run it, done. Do NOT use Homebrew.
+- **Linux** — run these two commands:
+  ```
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
 
-Verify: open a new Command Prompt and type `node --version` — should show `v20.x.x`
+After installing, open a **new** terminal and verify: `node --version`
 
 ---
 
-## Build — Windows (.exe installer)
+## Windows — desktop .exe installer
 
 1. Install Node.js (above)
 2. Double-click **`build.bat`**
@@ -24,74 +30,77 @@ Verify: open a new Command Prompt and type `node --version` — should show `v20
 
 ---
 
-## Build — Android (.apk)
+## macOS — desktop .dmg
 
-**Also requires:**
-- **Java 17** → https://adoptium.net (Temurin 17, Windows x64)
-- **Android Studio** → https://developer.android.com/studio (open it once to finish SDK setup)
-
-1. Install Node.js, Java 17, Android Studio
-2. Double-click **`build_apk.bat`**
-3. APK at `capacitor-mobile\android\app\build\outputs\apk\debug\app-debug.apk`
-4. To install: enable "Install from unknown sources" on your device, copy APK, tap to install
-
----
-
-## Build — macOS (.dmg)
-
-1. Install Node.js
-2. Open Terminal here:
-```
-bash build.sh mac
-```
+1. Install Node.js `.pkg` from https://nodejs.org/en/download
+2. Open Terminal in this folder and run:
+   ```
+   bash build_mac.sh
+   ```
 3. App at `dist-electron/fuelle-0.6.0.dmg`
 
 ---
 
-## Build — Linux (.deb / AppImage / rpm)
+## Linux — desktop .deb / AppImage
 
-1. Install Node.js:
-```
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-2. Run:
-```
-bash build.sh linux
-```
-3. Packages at `dist-electron/`
+1. Install Node.js (commands above)
+2. Open a terminal in this folder and run:
+   ```
+   bash build_linux.sh
+   ```
+   Or from file manager: right-click `build_linux.sh` → Properties → Permissions → Allow executing as program → double-click
+3. Packages in `dist-electron/`
+   - Install .deb: `sudo dpkg -i dist-electron/*.deb`
+   - Run AppImage: `chmod +x dist-electron/*.AppImage && ./dist-electron/*.AppImage`
 
 ---
 
-## Build — iOS (.ipa)
+## Android — .apk
 
-Requires Mac + Xcode + Apple Developer account ($99/yr) or AltStore for free personal sideloading.
+**Also requires:**
+- **Java 17+** → https://adoptium.net (Temurin 17, Windows x64)
+- **Android Studio** → https://developer.android.com/studio
+  Open it once after installing so it downloads the Android SDK automatically.
+
+1. Install all three (Node.js, Java 17, Android Studio)
+2. Double-click **`build_apk.bat`**
+3. APK at `capacitor-mobile\android\app\build\outputs\apk\debug\app-debug.apk`
+4. Install on device: enable "Install from unknown sources" in Settings, copy APK, tap it
+
+> **Note:** Java 8 will NOT work. Must be Java 17 or newer.
+
+---
+
+## iOS — .ipa
+
+Requires Mac + Xcode + Apple Developer account ($99/yr), or AltStore for free personal sideloading.
 
 1. Install Node.js
-2. Open Terminal:
-```
-cd capacitor-mobile
-npm install
-npx cap sync ios
-npx cap open ios
-```
+2. Open Terminal in the `capacitor-mobile/` folder:
+   ```
+   npm install
+   npx cap sync ios
+   npx cap open ios
+   ```
 3. In Xcode: select your Team → Product → Archive → Distribute App → export `.ipa`
 
-**Free sideloading with AltStore:** export with Development signing, use AltStore or Sideloadly.
+**Free sideloading:** export with Development signing, use AltStore or Sideloadly to install.
 
 ---
 
-## Your data is safe across upgrades
+## Your data is never deleted by installs or upgrades
 
-Data is stored **outside** the app install directory on every platform. Upgrading or reinstalling fuelle **never** touches your food logs.
+Data is stored outside the app install folder on every platform:
 
 | Platform | Data location |
 |----------|--------------|
 | Windows  | `%APPDATA%\fuelle\fuelle_data.json` |
-| macOS    | `~/Library/Application Support/fuelle/` |
-| Linux    | `~/.config/fuelle/` |
-| Android  | App private storage (Capacitor Preferences) |
-| iOS      | App private storage (Capacitor Preferences) |
+| macOS    | `~/Library/Application Support/fuelle/fuelle_data.json` |
+| Linux    | `~/.config/fuelle/fuelle_data.json` |
+| Android  | App private storage (survives APK upgrades) |
+| iOS      | App private storage (survives App Store updates) |
+
+A backup copy (`fuelle_data.backup.json`) is kept alongside the main file. If the main file is ever corrupted, the app automatically recovers from the backup.
 
 ---
 
@@ -99,21 +108,18 @@ Data is stored **outside** the app install directory on every platform. Upgradin
 
 ```
 fuelle-native/
-├── www/index.html          ← Entire app — shared by all platforms
-├── electron/src/           ← Desktop wrapper (Electron)
-├── capacitor-mobile/       ← Mobile wrapper (Capacitor)
+├── www/index.html              ← Entire app — shared by all platforms
+├── electron/src/               ← Desktop wrapper (Electron)
+├── capacitor-mobile/           ← Mobile wrapper (Capacitor)
+│   ├── capacitor.config.json   ← Points webDir to ../www
 │   ├── android/
 │   └── ios/
-├── resources/              ← Icons for all platforms (pre-generated)
-│   ├── icon.png            ← Light mode icon (default, 1024×1024)
-│   ├── icon_dark.png       ← Dark mode icon
-│   ├── icon.ico            ← Windows
-│   ├── icon.icns           ← macOS
-│   └── icons/             ← Linux (16px–512px)
-├── CHANGELOG.md
-├── build.bat               ← Windows desktop build
-├── build_apk.bat           ← Android APK build
-└── build.sh                ← macOS / Linux build
+├── resources/                  ← Icons for all platforms
+├── build.bat                   ← Windows desktop build
+├── build_apk.bat               ← Android APK build
+├── build_mac.sh                ← macOS build
+├── build_linux.sh              ← Linux build
+└── build.sh                    ← Core build logic (called by above)
 ```
 
 ---

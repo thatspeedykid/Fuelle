@@ -2,8 +2,8 @@
 title fuelle -- Android APK Build
 
 echo.
-echo  fuelle v0.5.0 - Android APK Builder
-echo  =====================================
+echo  fuelle - Android APK Builder
+echo  ==============================
 echo.
 
 :: ── Check Node.js ─────────────────────────────────────────────────────────────
@@ -11,7 +11,7 @@ node --version >nul 2>&1
 if errorlevel 1 (
     echo  [ERROR] Node.js is not installed.
     echo.
-    echo  Install it from: https://nodejs.org/en/download
+    echo  Install from: https://nodejs.org/en/download
     echo  Then re-run this script.
     echo.
     pause & exit /b 1
@@ -29,15 +29,15 @@ if errorlevel 1 (
     pause & exit /b 1
 )
 
-:: ── Check Android SDK / ANDROID_HOME ─────────────────────────────────────────
+:: ── Check Android SDK ─────────────────────────────────────────────────────────
 if "%ANDROID_HOME%"=="" (
-    if exist "%LOCALAPPDATA%\Android\Sdk" (
+    if exist "%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" (
         set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
     ) else (
         echo  [ERROR] Android SDK not found.
         echo.
         echo  Install Android Studio from: https://developer.android.com/studio
-        echo  Open it once, it will install the SDK automatically.
+        echo  Open it once to let it install the SDK automatically.
         echo  Then re-run this script.
         echo.
         pause & exit /b 1
@@ -45,62 +45,68 @@ if "%ANDROID_HOME%"=="" (
 )
 
 for /f "tokens=*" %%v in ('node --version') do set "NODE_VER=%%v"
-for /f "tokens=*" %%v in ('java -version 2^>^&1 ^| findstr version') do set "JAVA_VER=%%v"
-echo [1/5] Node.js %NODE_VER% found.
-echo [1/5] %JAVA_VER%
-echo [1/5] Android SDK: %ANDROID_HOME%
+echo [1/4] Node.js %NODE_VER% found.
+echo [1/4] Android SDK: %ANDROID_HOME%
 echo.
 
-:: ── Install Capacitor dependencies ───────────────────────────────────────────
-echo [2/5] Installing Capacitor dependencies...
+:: ── Install Capacitor deps (run from capacitor-mobile folder) ─────────────────
+echo [2/4] Installing Capacitor dependencies...
 cd capacitor-mobile
-call npm install
-if errorlevel 1 ( echo [ERROR] npm install failed. & pause & exit /b 1 )
+call npm install --silent
+if errorlevel 1 (
+    echo  [ERROR] npm install failed.
+    pause & exit /b 1
+)
+echo  [OK] Dependencies installed.
 echo.
 
-:: ── Sync www into Android project ────────────────────────────────────────────
-echo [3/5] Syncing web app into Android...
-call npx cap sync android
-if errorlevel 1 ( echo [ERROR] cap sync failed. & pause & exit /b 1 )
+:: ── Sync www into Android ─────────────────────────────────────────────────────
+echo [3/4] Syncing app into Android project...
+echo       (copies www\index.html + icons into the Android project)
 echo.
 
-:: ── Build debug APK (no keystore needed) ─────────────────────────────────────
-echo [4/5] Building APK...
-echo       Building debug APK (install on your device directly).
+:: npx cap sync reads capacitor.config.json from the current directory (capacitor-mobile)
+:: which points webDir to ../www — so it finds index.html correctly
+call npx cap sync android --inline
+if errorlevel 1 (
+    echo.
+    echo  [ERROR] cap sync failed. See above for details.
+    pause & exit /b 1
+)
+echo.
+
+:: ── Build APK ─────────────────────────────────────────────────────────────────
+echo [4/4] Building APK...
 echo.
 
 cd android
-call gradlew.bat assembleDebug
+call gradlew.bat assembleDebug 2>&1
 if errorlevel 1 (
     echo.
-    echo  [ERROR] Gradle build failed.
-    echo  Common fixes:
-    echo    - Make sure ANDROID_HOME is set to your SDK folder
-    echo    - Make sure Java 17 is installed
-    echo    - Open Android Studio once to finish SDK setup
+    echo  [ERROR] Gradle build failed. Common fixes:
+    echo    - Make sure Java 17+ is installed (not Java 8)
+    echo    - Open Android Studio once to complete SDK setup
+    echo    - Run: cd capacitor-mobile\android && gradlew.bat --version
+    echo      to see a more detailed error
     pause & exit /b 1
 )
-cd ..
+cd ..\..
 
 :: ── Done ──────────────────────────────────────────────────────────────────────
-set "APK_PATH=android\app\build\outputs\apk\debug\app-debug.apk"
+set "APK=capacitor-mobile\android\app\build\outputs\apk\debug\app-debug.apk"
 
 echo.
-echo [5/5] Done!
+echo  Done!
 echo.
-echo  +--------------------------------------------------------------+
-echo  ^|  APK: capacitor-mobile\%APK_PATH%  ^|
-echo  ^|                                                              ^|
-echo  ^|  To install on your Android phone or tablet:                 ^|
-echo  ^|    1. Enable "Install from unknown sources" in Settings       ^|
-echo  ^|    2. Copy the .apk to your device                           ^|
-echo  ^|    3. Open it and tap Install                                 ^|
-echo  ^|                                                              ^|
-echo  ^|  OR connect your device via USB and run:                     ^|
-echo  ^|    adb install %APK_PATH%    ^|
-echo  +--------------------------------------------------------------+
+echo  +----------------------------------------------------------+
+echo  ^|  APK: %APK%
+echo  ^|                                                          ^|
+echo  ^|  To install on Android phone or tablet:                  ^|
+echo  ^|    1. Enable "Install from unknown sources" in Settings   ^|
+echo  ^|    2. Copy the .apk to your device and tap it            ^|
+echo  ^|  OR connect via USB:  adb install %APK%
+echo  +----------------------------------------------------------+
 echo.
 
-cd ..
 explorer "capacitor-mobile\android\app\build\outputs\apk\debug" 2>nul
 pause
